@@ -1,0 +1,18 @@
+{% extends 'base.html' %} {% block title %}Login - Taller Mecánico{% endblock %}
+{% block content %}
+<h1>Iniciar Sesión</h1>
+<div class="login-form">
+  <form action="#" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="username">Usuario:</label>
+      <input type="text" id="username" name="username" required />
+    </div>
+    <div class="form-group">
+      <label for="password">Contraseña:</label>
+      <input type="password" id="password" name="password" required />
+    </div>
+    <button type="submit">Iniciar sesión</button>
+  </form>
+</div>
+{% endblock %}
