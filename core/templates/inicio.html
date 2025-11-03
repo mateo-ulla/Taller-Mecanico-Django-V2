@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Inicio{% endblock %}
 {% block content %}
 <div class="jumbotron p-4 p-md-5 text-white rounded bg-primary hero">
   <div class="col-md-8 px-0">
-    <h1 class="display-5">Bienvenido a Taller Ulla</h1>
+    <h1 class="display-5">Bienvenido a Taller Mecánico</h1>
     <p class="lead my-3">Servicios profesionales para tu vehículo: reparación, mantenimiento y repuestos.</p>
     <p class="lead mb-0"><a href="{% url 'cotizacion' %}" class="btn btn-light btn-lg">Solicitar presupuesto</a></p>
   </div>

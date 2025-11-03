@@ -19,9 +19,10 @@ def acerca(request):
     Página 'Quienes somos': misión, visión, historia y equipo
     """
     equipo = [
-        {"nombre": "Diego Gómez", "rol": "Jefe de taller"},
-        {"nombre": "María Pérez", "rol": "Administración"},
-        {"nombre": "Lucas Martínez", "rol": "Técnico mecánico"},
+        {"nombre": "Mateo Ulla", "rol": "Jefe de taller"},
+        {"nombre": "Matías Llanos", "rol": "Administración"},
+        {"nombre": "Santino Macchiarola", "rol": "Técnico mecánico"},
+        {"nombre": "Oriana Daer", "rol": "Secretaria"},
     ]
     contexto = {
         "mision": "Brindar soluciones automotrices confiables y accesibles.",
@@ -74,7 +75,7 @@ def cotizacion(request):
 
 def login_empleados(request):
     """
-    Interfaz de login (formulario). No implementamos lógica completa de autenticación
+    Interfaz de Inicio de Sesión (formulario). No implementamos lógica completa de autenticación
     para mantenerlo simple y acorde al trabajo práctico.
     """
     if request.method == "POST":
