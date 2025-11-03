@@ -1,8 +1,26 @@
-{% extends 'base.html' %} {% block title %}Inicio - Taller Mecánico{% endblock
-%} {% block content %}
-<h1>Bienvenido a nuestro Taller Mecánico</h1>
-<div class="hero-section">
-  <img src="/static/img/taller.jpg" alt="Taller Mecánico" />
-  <p>Su mejor opción para el mantenimiento y reparación de vehículos</p>
+{% extends "base.html" %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<div class="jumbotron p-4 p-md-5 text-white rounded bg-primary hero">
+  <div class="col-md-8 px-0">
+    <h1 class="display-5">Bienvenido a Taller Ulla</h1>
+    <p class="lead my-3">Servicios profesionales para tu vehículo: reparación, mantenimiento y repuestos.</p>
+    <p class="lead mb-0"><a href="{% url 'cotizacion' %}" class="btn btn-light btn-lg">Solicitar presupuesto</a></p>
+  </div>
+</div>
+
+<h2 class="mt-4">Nuestros servicios destacados</h2>
+<div class="row">
+  {% for s in servicios %}
+  <div class="col-md-4 my-2">
+    <div class="card h-100">
+      <img src="{% static 'img/iconos/mecanico.png' %}" class="card-img-top" alt="servicio">
+      <div class="card-body">
+        <h5 class="card-title">{{ s.titulo }}</h5>
+        <p class="card-text">{{ s.descripcion }}</p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

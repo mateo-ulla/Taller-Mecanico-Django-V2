@@ -1,11 +1,5 @@
-"""
-WSGI config for taller_mecanico project.
-"""
-
 import os
-
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'taller_mecanico.settings')
-
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "taller_mecanico.settings")
 application = get_wsgi_application()

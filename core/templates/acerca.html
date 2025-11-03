@@ -1,11 +1,23 @@
-{% extends 'base.html' %} {% block title %}Acerca de - Taller Mecánico{%
-endblock %} {% block content %}
-<h1>Acerca de Nosotros</h1>
-<div class="about-section">
-  <img src="/static/img/equipo.jpg" alt="Nuestro Equipo" />
-  <p>
-    Somos un equipo de profesionales dedicados a brindar el mejor servicio para
-    su vehículo.
-  </p>
+{% extends "base.html" %}
+{% block title %}Quienes Somos{% endblock %}
+{% block content %}
+<h1>Acerca de Taller Ulla</h1>
+<p><strong>Misión:</strong> {{ mision }}</p>
+<p><strong>Visión:</strong> {{ vision }}</p>
+<p><strong>Historia:</strong> {{ historia }}</p>
+
+<h3 class="mt-4">Nuestro equipo</h3>
+<div class="row">
+  {% for persona in equipo %}
+  <div class="col-md-4 my-2">
+    <div class="card">
+      <img src="{% static 'img/iconos/equipo.png' %}" class="card-img-top" alt="persona">
+      <div class="card-body">
+        <h5 class="card-title">{{ persona.nombre }}</h5>
+        <p class="card-text">{{ persona.rol }}</p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

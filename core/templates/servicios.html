@@ -1,13 +1,15 @@
-{% extends 'base.html' %} {% block title %}Servicios - Taller Mecánico{%
-endblock %} {% block content %}
-<h1>Nuestros Servicios</h1>
-<div class="services-section">
-  <ul>
-    <li>Mantenimiento preventivo</li>
-    <li>Reparación de motor</li>
-    <li>Sistema eléctrico</li>
-    <li>Frenos y suspensión</li>
-    <li>Diagnóstico computarizado</li>
-  </ul>
+{% extends "base.html" %}
+{% block title %}Servicios{% endblock %}
+{% block content %}
+<h1>Servicios</h1>
+<p>Detalle de los servicios que ofrecemos en el taller.</p>
+
+<div class="list-group">
+  {% for s in lista_servicios %}
+  <div class="list-group-item">
+    <h5>{{ s.titulo }}</h5>
+    <p>{{ s.detalle }}</p>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}
