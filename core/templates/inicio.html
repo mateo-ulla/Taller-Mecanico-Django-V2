@@ -2,7 +2,8 @@
 {% load static %}
 {% block title %}Inicio{% endblock %}
 {% block content %}
-<div class="jumbotron p-4 p-md-5 text-white rounded bg-primary hero">
+<!-- Hero: uso de imagen disponible (edificio.png) como fondo -->
+<div class="jumbotron p-4 p-md-5 text-white rounded bg-primary hero" style="background-image: url('{% static>
   <div class="col-md-8 px-0">
     <h1 class="display-5">Bienvenido a Taller Mecánico</h1>
     <p class="lead my-3">Servicios profesionales para tu vehículo: reparación, mantenimiento y repuestos.</p>
@@ -15,7 +16,8 @@
   {% for s in servicios %}
   <div class="col-md-4 my-2">
     <div class="card h-100">
-      <img src="{% static 'img/iconos/mecanico.png' %}" class="card-img-top" alt="servicio">
+      <!-- usamos bateria-de-coche.png como imagen genérica de servicio -->
+      <img src="{% static 'img/iconos/bateria-de-coche.png' %}" class="card-img-top" alt="servicio">
       <div class="card-body">
         <h5 class="card-title">{{ s.titulo }}</h5>
         <p class="card-text">{{ s.descripcion }}</p>

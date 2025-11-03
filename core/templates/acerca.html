@@ -12,7 +12,8 @@
   {% for persona in equipo %}
   <div class="col-md-4 my-2">
     <div class="card">
-      <img src="{% static 'img/iconos/equipo.png' %}" class="card-img-top" alt="persona">
+      <!-- usamos Empleado.png para las fotos de equipo -->
+      <img src="{% static 'img/iconos/Empleado.png' %}" class="card-img-top" alt="persona">
       <div class="card-body">
         <h5 class="card-title">{{ persona.nombre }}</h5>
         <p class="card-text">{{ persona.rol }}</p>

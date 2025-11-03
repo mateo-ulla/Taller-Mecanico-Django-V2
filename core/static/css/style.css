@@ -1,3 +1,4 @@
+/* CSS simple estilo estudiante */
 body {
   background: #f8f9fa;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -8,15 +9,16 @@ body {
   margin-right: 8px;
 }
 
-/* Hero estilo */
+/* Hero: se aplica inline en inicio.html para usar {% static %} */
 .hero {
-  background-image: url("/static/img/iconos/taller.jpg");
+  color: white;
   background-size: cover;
   background-position: center;
-  color: white;
+  padding-top: 48px;
+  padding-bottom: 48px;
 }
 
-/* Cards y listas */
+/* Card images */
 .card img {
   height: 140px;
   object-fit: cover;
@@ -27,7 +29,7 @@ footer {
   position: relative;
 }
 
-/* Form spacing simple */
+/* Form styling */
 form .form-label {
   font-weight: 600;
 }
