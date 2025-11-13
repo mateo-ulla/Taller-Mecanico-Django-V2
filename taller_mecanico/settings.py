@@ -51,11 +51,18 @@ TEMPLATES = [
 WSGI_APPLICATION = "taller_mecanico.wsgi.application"
 ASGI_APPLICATION = "taller_mecanico.asgi.application"
 
-# base de datos SQLite por defecto.
+# Configuración para MySQL
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "taller_mecanico",
+        "USER": "root",
+        "PASSWORD": "root",
+        "HOST": "localhost",
+        "PORT": "3306",
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 

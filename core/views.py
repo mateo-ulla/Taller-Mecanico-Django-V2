@@ -73,19 +73,288 @@ def cotizacion(request):
     servicios_form = ["Cambio de aceite", "Frenos", "Alineación", "Diagnóstico", "Repuestos"]
     return render(request, "cotizacion.html", {"servicios": servicios_form})
 
+import mysql.connector
+
 def login_empleados(request):
     """
-    Interfaz de Inicio de Sesión (formulario). No implementamos lógica completa de autenticación
-    para mantenerlo simple y acorde al trabajo práctico.
+    Login real: valida credenciales contra MySQL y guarda tipo de usuario en sesión.
     """
+    error = None
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        # Aquí podrías autenticar con django.contrib.auth.authenticate y login
-        # Pero como el TP pidió solo la interfaz, mostramos success si los campos llenos.
-        if username and password:
-            messages.success(request, f"Bienvenido, {username}. (Simulado)")
-            return redirect("inicio")
-        else:
-            messages.error(request, "Debe completar usuario y contraseña.")
-    return render(request, "login.html")
+        # Admin hardcodeado
+        if username == "admin" and password == "admin123":
+            request.session["user_type"] = "admin"
+            request.session["username"] = "admin"
+            return redirect("lista_empleados")
+        # Empleado: buscar en la base de datos
+        try:
+            conn = mysql.connector.connect(
+                host="localhost", user="root", password="root", database="taller_mecanico"
+            )
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM empleado WHERE usuario=%s AND contrasena=%s", (username, password))
+            empleado = cursor.fetchone()
+            if empleado:
+                request.session["user_type"] = "empleado"
+                request.session["empleado_id"] = empleado["id"]
+                request.session["username"] = username
+                return redirect("lista_empleados")
+            else:
+                error = "Credenciales incorrectas"
+        except Exception as ex:
+            error = f"Error de conexión: {ex}"
+    return render(request, "login.html", {"error": error})
+
+def panel(request):
+    """
+    Panel especial para admin y empleados autenticados.
+    """
+
+    user_type = request.session.get("user_type")
+    username = request.session.get("username")
+    if not user_type:
+        return redirect("login_empleados")
+    return render(request, "panel.html", {"user_type": user_type, "username": username})
+
+def logout(request):
+    """
+    Cierra la sesión y redirige al inicio.
+    """
+    request.session.flush()
+    return redirect("inicio")
+
+# --- CRUD EMPLEADOS ---
+def lista_empleados(request):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor(dictionary=True)
+    empleado = None
+    # Si viene para modificar
+    if request.method == "GET" and "modificar" in request.GET:
+        legajo = request.GET.get("modificar")
+        cursor.execute("SELECT emp.legajo, per.dni, per.nombre, per.apellido FROM empleado emp INNER JOIN persona per ON emp.dni = per.dni WHERE emp.legajo = %s", (legajo,))
+        empleado = cursor.fetchone()
+    # Si viene para alta o modificación
+    if request.method == "POST":
+        if "modificar" in request.POST: # Modificación
+            legajo = request.POST.get("legajo")
+            nombre = request.POST.get("nombre")
+            apellido = request.POST.get("apellido")
+            cursor2 = conn.cursor()
+            cursor2.execute("UPDATE persona SET nombre=%s, apellido=%s WHERE dni=(SELECT dni FROM empleado WHERE legajo=%s)", (nombre, apellido, legajo))
+            conn.commit()
+            return redirect("lista_empleados")
+        else: # Alta
+            legajo = request.POST.get("legajo")
+            dni = request.POST.get("dni")
+            nombre = request.POST.get("nombre")
+            apellido = request.POST.get("apellido")
+            cursor2 = conn.cursor()
+            cursor2.execute("INSERT INTO persona (dni, nombre, apellido) VALUES (%s, %s, %s)", (dni, nombre, apellido))
+            cursor2.execute("INSERT INTO empleado (legajo, dni) VALUES (%s, %s)", (legajo, dni))
+            conn.commit()
+            return redirect("lista_empleados")
+    cursor.execute("""
+        SELECT emp.legajo, per.dni, per.nombre, per.apellido
+        FROM empleado emp INNER JOIN persona per ON emp.dni = per.dni
+        ORDER BY emp.legajo
+    """)
+    empleados = cursor.fetchall()
+    return render(request, "empleados_lista.html", {"empleados": empleados, "empleado": empleado})
+
+def alta_empleado(request):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    if request.method == "POST":
+        legajo = request.POST.get("legajo")
+        dni = request.POST.get("dni")
+        nombre = request.POST.get("nombre")
+        apellido = request.POST.get("apellido")
+        conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO persona (dni, nombre, apellido) VALUES (%s, %s, %s)", (dni, nombre, apellido))
+        cursor.execute("INSERT INTO empleado (legajo, dni) VALUES (%s, %s)", (legajo, dni))
+        conn.commit()
+        return redirect("lista_empleados")
+    return render(request, "empleados_alta.html")
+
+def modificar_empleado(request, legajo):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT emp.legajo, per.dni, per.nombre, per.apellido FROM empleado emp INNER JOIN persona per ON emp.dni = per.dni WHERE emp.legajo = %s", (legajo,))
+    empleado = cursor.fetchone()
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        apellido = request.POST.get("apellido")
+        cursor2 = conn.cursor()
+        cursor2.execute("UPDATE persona SET nombre=%s, apellido=%s WHERE dni=%s", (nombre, apellido, empleado["dni"]))
+        conn.commit()
+        return redirect("lista_empleados")
+    return render(request, "empleados_modificar.html", {"empleado": empleado})
+
+def eliminar_empleado(request, legajo):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT dni FROM empleado WHERE legajo = %s", (legajo,))
+    empleado = cursor.fetchone()
+    cursor2 = conn.cursor()
+    cursor2.execute("DELETE FROM empleado WHERE legajo = %s", (legajo,))
+    cursor2.execute("DELETE FROM persona WHERE dni = %s", (empleado["dni"],))
+    conn.commit()
+    return redirect("lista_empleados")
+
+# --- CRUD FICHA TECNICA ---
+def lista_fichas(request):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor(dictionary=True)
+    ficha = None
+    # Si viene para modificar
+    if request.method == "GET" and "modificar" in request.GET:
+        nro_ficha = request.GET.get("modificar")
+        cursor.execute("SELECT * FROM ficha_tecnica WHERE nro_ficha = %s", (nro_ficha,))
+        ficha = cursor.fetchone()
+    # Si viene para alta
+    if request.method == "POST":
+        if "nro_ficha" in request.POST and not request.POST.get("modificar"): # Alta
+            nro_ficha = request.POST.get("nro_ficha")
+            cod_cliente = request.POST.get("cod_cliente")
+            vehiculo = request.POST.get("vehiculo")
+            subtotal = request.POST.get("subtotal")
+            mano_obra = request.POST.get("mano_obra")
+            total_general = request.POST.get("total_general")
+            cursor2 = conn.cursor()
+            cursor2.execute("INSERT INTO ficha_tecnica (nro_ficha, cod_cliente, vehiculo, subtotal, mano_obra, total_general) VALUES (%s, %s, %s, %s, %s, %s)", (nro_ficha, cod_cliente, vehiculo, subtotal, mano_obra, total_general))
+            conn.commit()
+            return redirect("lista_fichas")
+        elif "modificar" in request.POST: # Modificación
+            nro_ficha = request.POST.get("nro_ficha")
+            cod_cliente = request.POST.get("cod_cliente")
+            vehiculo = request.POST.get("vehiculo")
+            subtotal = request.POST.get("subtotal")
+            mano_obra = request.POST.get("mano_obra")
+            total_general = request.POST.get("total_general")
+            cursor2 = conn.cursor()
+            cursor2.execute("UPDATE ficha_tecnica SET cod_cliente=%s, vehiculo=%s, subtotal=%s, mano_obra=%s, total_general=%s WHERE nro_ficha=%s", (cod_cliente, vehiculo, subtotal, mano_obra, total_general, nro_ficha))
+            conn.commit()
+            return redirect("lista_fichas")
+    cursor.execute("SELECT * FROM ficha_tecnica ORDER BY nro_ficha")
+    fichas = cursor.fetchall()
+    return render(request, "fichas_lista.html", {"fichas": fichas, "ficha": ficha})
+
+def alta_ficha(request):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    if request.method == "POST":
+        nro_ficha = request.POST.get("nro_ficha")
+        cod_cliente = request.POST.get("cod_cliente")
+        vehiculo = request.POST.get("vehiculo")
+        subtotal = request.POST.get("subtotal")
+        mano_obra = request.POST.get("mano_obra")
+        total_general = request.POST.get("total_general")
+        conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO ficha_tecnica (nro_ficha, cod_cliente, vehiculo, subtotal, mano_obra, total_general) VALUES (%s, %s, %s, %s, %s, %s)", (nro_ficha, cod_cliente, vehiculo, subtotal, mano_obra, total_general))
+        conn.commit()
+        return redirect("lista_fichas")
+    return render(request, "fichas_alta.html")
+
+def modificar_ficha(request, nro_ficha):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM ficha_tecnica WHERE nro_ficha = %s", (nro_ficha,))
+    ficha = cursor.fetchone()
+    if request.method == "POST":
+        cod_cliente = request.POST.get("cod_cliente")
+        vehiculo = request.POST.get("vehiculo")
+        subtotal = request.POST.get("subtotal")
+        mano_obra = request.POST.get("mano_obra")
+        total_general = request.POST.get("total_general")
+        cursor2 = conn.cursor()
+        cursor2.execute("UPDATE ficha_tecnica SET cod_cliente=%s, vehiculo=%s, subtotal=%s, mano_obra=%s, total_general=%s WHERE nro_ficha=%s", (cod_cliente, vehiculo, subtotal, mano_obra, total_general, nro_ficha))
+        conn.commit()
+        return redirect("lista_fichas")
+    return render(request, "fichas_modificar.html", {"ficha": ficha})
+
+def eliminar_ficha(request, nro_ficha):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM ficha_tecnica WHERE nro_ficha = %s", (nro_ficha,))
+    conn.commit()
+    return redirect("lista_fichas")
+
+# --- CRUD PRESUPUESTO ---
+def lista_presupuestos(request):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor(dictionary=True)
+    if request.method == "POST":
+        nro_presupuesto = request.POST.get("nro_presupuesto")
+        cod_cliente = request.POST.get("cod_cliente")
+        descripcion = request.POST.get("descripcion")
+        total_presupuesto = request.POST.get("total_presupuesto")
+        total_gastado = request.POST.get("total_gastado")
+        cursor2 = conn.cursor()
+        cursor2.execute("INSERT INTO presupuesto (nro_presupuesto, cod_cliente, descripcion, total_presupuesto, total_gastado) VALUES (%s, %s, %s, %s, %s)", (nro_presupuesto, cod_cliente, descripcion, total_presupuesto, total_gastado))
+        conn.commit()
+        return redirect("lista_presupuestos")
+    cursor.execute("SELECT * FROM presupuesto ORDER BY nro_presupuesto")
+    presupuestos = cursor.fetchall()
+    return render(request, "presupuestos_lista.html", {"presupuestos": presupuestos})
+
+def alta_presupuesto(request):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    if request.method == "POST":
+        nro_presupuesto = request.POST.get("nro_presupuesto")
+        cod_cliente = request.POST.get("cod_cliente")
+        descripcion = request.POST.get("descripcion")
+        total_presupuesto = request.POST.get("total_presupuesto")
+        total_gastado = request.POST.get("total_gastado")
+        conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO presupuesto (nro_presupuesto, cod_cliente, descripcion, total_presupuesto, total_gastado) VALUES (%s, %s, %s, %s, %s)", (nro_presupuesto, cod_cliente, descripcion, total_presupuesto, total_gastado))
+        conn.commit()
+        return redirect("lista_presupuestos")
+    return render(request, "presupuestos_alta.html")
+
+def modificar_presupuesto(request, nro_presupuesto):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM presupuesto WHERE nro_presupuesto = %s", (nro_presupuesto,))
+    presupuesto = cursor.fetchone()
+    if request.method == "POST":
+        cod_cliente = request.POST.get("cod_cliente")
+        descripcion = request.POST.get("descripcion")
+        total_presupuesto = request.POST.get("total_presupuesto")
+        total_gastado = request.POST.get("total_gastado")
+        cursor2 = conn.cursor()
+        cursor2.execute("UPDATE presupuesto SET cod_cliente=%s, descripcion=%s, total_presupuesto=%s, total_gastado=%s WHERE nro_presupuesto=%s", (cod_cliente, descripcion, total_presupuesto, total_gastado, nro_presupuesto))
+        conn.commit()
+        return redirect("lista_presupuestos")
+    return render(request, "presupuestos_modificar.html", {"presupuesto": presupuesto})
+
+def eliminar_presupuesto(request, nro_presupuesto):
+    if request.session.get("user_type") != "admin":
+        return redirect("login_empleados")
+    conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM presupuesto WHERE nro_presupuesto = %s", (nro_presupuesto,))
+    conn.commit()
+    return redirect("lista_presupuestos")
+   
