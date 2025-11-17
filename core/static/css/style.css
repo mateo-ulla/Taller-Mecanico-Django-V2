@@ -8,6 +8,9 @@ body {
   height: 36px;
   margin-right: 8px;
 }
+.card-custom {
+  min-height: 1000px; /* ajusta el valor según lo que necesites */
+}
 
 /* Hero: se aplica inline en inicio.html para usar {% static %} */
 .hero {
@@ -20,8 +23,18 @@ body {
 
 /* Card images */
 .card img {
-  height: 140px;
+  height: 300px;
   object-fit: cover;
+}
+
+.card-img-top {
+  width: 100%;
+  height: auto; /* ajusta el valor según lo que necesites */
+  object-fit: cover; /* recorta la imagen para que llene el espacio */
+}
+
+.card {
+  min-height: 300px; /* ajusta la altura mínima de la tarjeta */
 }
 
 /* Footer */
