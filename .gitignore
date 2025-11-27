@@ -4,7 +4,6 @@ __pycache__/
 history/
 # Ignorar archivos de entorno
 .env
-*.sqlite3
 # Ignorar archivos de logs
 *.log
 # Ignorar archivos de configuración de VSCode

@@ -231,6 +231,13 @@ def lista_fichas(request):
             subtotal = request.POST.get("subtotal")
             mano_obra = request.POST.get("mano_obra")
             total_general = request.POST.get("total_general")
+            try:
+                subtotal = float(subtotal)
+                mano_obra = float(mano_obra)
+                total_general = float(total_general)
+            except (ValueError, TypeError):
+                messages.error(request, "Los valores de subtotal, mano de obra y total general deben ser números válidos.")
+                return redirect("fichas_alta")
             cursor2 = conn.cursor()
             cursor2.execute("INSERT INTO ficha_tecnica (nro_ficha, cod_cliente, vehiculo, subtotal, mano_obra, total_general) VALUES (%s, %s, %s, %s, %s, %s)", (nro_ficha, cod_cliente, vehiculo, subtotal, mano_obra, total_general))
             conn.commit()
@@ -242,6 +249,13 @@ def lista_fichas(request):
             subtotal = request.POST.get("subtotal")
             mano_obra = request.POST.get("mano_obra")
             total_general = request.POST.get("total_general")
+            try:
+                subtotal = float(subtotal)
+                mano_obra = float(mano_obra)
+                total_general = float(total_general)
+            except (ValueError, TypeError):
+                messages.error(request, "Los valores de subtotal, mano de obra y total general deben ser números válidos.")
+                return redirect("fichas_modificar")
             cursor2 = conn.cursor()
             cursor2.execute("UPDATE ficha_tecnica SET cod_cliente=%s, vehiculo=%s, subtotal=%s, mano_obra=%s, total_general=%s WHERE nro_ficha=%s", (cod_cliente, vehiculo, subtotal, mano_obra, total_general, nro_ficha))
             conn.commit()
@@ -260,6 +274,13 @@ def alta_ficha(request):
         subtotal = request.POST.get("subtotal")
         mano_obra = request.POST.get("mano_obra")
         total_general = request.POST.get("total_general")
+        try:
+            subtotal = float(subtotal)
+            mano_obra = float(mano_obra)
+            total_general = float(total_general)
+        except (ValueError, TypeError):
+            messages.error(request, "Los valores de subtotal, mano de obra y total general deben ser números válidos.")
+            return redirect("fichas_alta")
         conn = mysql.connector.connect(host="localhost", user="root", password="root", database="taller_mecanico")
         cursor = conn.cursor()
         cursor.execute("INSERT INTO ficha_tecnica (nro_ficha, cod_cliente, vehiculo, subtotal, mano_obra, total_general) VALUES (%s, %s, %s, %s, %s, %s)", (nro_ficha, cod_cliente, vehiculo, subtotal, mano_obra, total_general))
@@ -280,6 +301,13 @@ def modificar_ficha(request, nro_ficha):
         subtotal = request.POST.get("subtotal")
         mano_obra = request.POST.get("mano_obra")
         total_general = request.POST.get("total_general")
+        try:
+            subtotal = float(str(subtotal).replace(",", "."))
+            mano_obra = float(str(mano_obra).replace(",", "."))
+            total_general = float(str(total_general).replace(",", "."))
+        except (ValueError, TypeError):
+            messages.error(request, "Los valores de subtotal, mano de obra y total general deben ser números válidos.")
+            return redirect("modificar_ficha", nro_ficha=nro_ficha)
         cursor2 = conn.cursor()
         cursor2.execute("UPDATE ficha_tecnica SET cod_cliente=%s, vehiculo=%s, subtotal=%s, mano_obra=%s, total_general=%s WHERE nro_ficha=%s", (cod_cliente, vehiculo, subtotal, mano_obra, total_general, nro_ficha))
         conn.commit()
@@ -343,6 +371,12 @@ def modificar_presupuesto(request, nro_presupuesto):
         descripcion = request.POST.get("descripcion")
         total_presupuesto = request.POST.get("total_presupuesto")
         total_gastado = request.POST.get("total_gastado")
+        try:
+            total_presupuesto = float(total_presupuesto.replace(",", "."))
+            total_gastado = float(total_gastado.replace(",", "."))
+        except (ValueError, TypeError):
+            messages.error(request, "Los valores de total presupuesto y total gastado deben ser números válidos.")
+            return redirect("presupuestos_modificar", nro_presupuesto=nro_presupuesto)
         cursor2 = conn.cursor()
         cursor2.execute("UPDATE presupuesto SET cod_cliente=%s, descripcion=%s, total_presupuesto=%s, total_gastado=%s WHERE nro_presupuesto=%s", (cod_cliente, descripcion, total_presupuesto, total_gastado, nro_presupuesto))
         conn.commit()
