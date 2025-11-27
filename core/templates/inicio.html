@@ -16,8 +16,17 @@
   {% for s in servicios %}
   <div class="col-md-4 my-2">
     <div class="card h-100">
-      <!-- usamos bateria-de-coche.png como imagen genérica de servicio -->
-      <img src="{% static 'img/iconos/bateria-de-coche.png' %}" class="card-img-top" alt="servicio">
+      {% if forloop.counter == 1 %}
+        <img src="{% static 'img/iconos/filtro-de-aceite.png' %}" class="card-img-top" alt="servicio">
+      {% elif forloop.counter == 2 %}
+        <img src="{% static 'img/iconos/frenos.png' %}" class="card-img-top" alt="servicio">
+      {% elif forloop.counter == 3 %}
+        <img src="{% static 'img/iconos/suspension.png' %}" class="card-img-top" alt="servicio">
+      {% elif forloop.counter == 4 %}
+        <img src="{% static 'img/iconos/bateria-de-coche.png' %}" class="card-img-top" alt="servicio">
+      {% elif forloop.counter == 5 %}
+        <img src="{% static 'img/iconos/alineacion-de-ruedas.png' %}" class="card-img-top" alt="servicio">
+      {% endif %}
       <div class="card-body">
         <h5 class="card-title">{{ s.titulo }}</h5>
         <p class="card-text">{{ s.descripcion }}</p>
