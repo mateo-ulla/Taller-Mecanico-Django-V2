@@ -205,6 +205,9 @@ def eliminar_empleado(request, legajo):
     cursor.execute("SELECT dni FROM empleado WHERE legajo = %s", (legajo,))
     empleado = cursor.fetchone()
     cursor2 = conn.cursor()
+    # Eliminar dependencias de detalle_empleado_fechatec si existen
+    cursor2.execute("DELETE FROM detalle_empleado_fechatec WHERE legajo = %s", (legajo,))
+    # Eliminar de empleado y persona
     cursor2.execute("DELETE FROM empleado WHERE legajo = %s", (legajo,))
     cursor2.execute("DELETE FROM persona WHERE dni = %s", (empleado["dni"],))
     conn.commit()
